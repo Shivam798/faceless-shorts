@@ -6,6 +6,8 @@
 //   node tools/capture.mjs video renders/out.mp4 [start end] [--draft]   the film (30 fps) with data/mix.wav if it exists
 //   node tools/capture.mjs preview                       serve the project and print a URL to watch it in a browser
 // CHROME=/path/to/chrome overrides the browser.
+// 4K by default: 2160x3840 (SCALE=2; 3D styles also render WebGL at res=2). SCALE=1 → 1080x1920. Without a GPU
+// (SOFTWARE_GL=1) the default is 1080. CRF, JPEG_Q, ABR override the encode quality.
 import { spawn, spawnSync } from 'node:child_process';
 import http from 'node:http';
 import fs from 'node:fs';
@@ -15,6 +17,8 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const FPS = +(process.env.FPS || 30);
+const SCALE = +(process.env.SCALE || (process.env.SOFTWARE_GL ? 1 : 2));
+const QS = `&scale=${SCALE}` + (/(^|&)res=/.test(process.env.QS || '') ? '' : `&res=${SCALE}`) + (process.env.QS || '');
 const CHROME = [process.env.CHROME, '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/Applications/Chromium.app/Contents/MacOS/Chromium',
   '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge', '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable', '/usr/bin/chromium',
   '/usr/bin/chromium-browser', '/snap/bin/chromium', 'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -45,7 +49,7 @@ async function openPage(port) {
   let dbg;
   for (let i = 0; i < 200 && !dbg; i++) { try { dbg = fs.readFileSync(path.join(prof, 'DevToolsActivePort'), 'utf8').split('\n')[0].trim(); } catch { await sleep(100); } }
   if (!dbg) throw new Error('Chrome did not start');
-  const r = await fetch(`http://127.0.0.1:${dbg}/json/new?${encodeURIComponent(`http://127.0.0.1:${port}/index.html?capture=1${process.env.QS || ''}`)}`, { method: 'PUT' });
+  const r = await fetch(`http://127.0.0.1:${dbg}/json/new?${encodeURIComponent(`http://127.0.0.1:${port}/index.html?capture=1${QS}`)}`, { method: 'PUT' });
   const target = await r.json();
   const ws = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
@@ -107,11 +111,11 @@ else {
       const mix = path.join(ROOT, 'data/mix.wav'), hasMix = fs.existsSync(mix), a0 = rest[1] ? +rest[1] : 0, a1 = rest[2] ? Math.min(+rest[2], dur) : dur, n = Math.round((a1 - a0) * FPS);
       const ff = spawn('ffmpeg', ['-v', 'error', '-y', '-f', 'image2pipe', '-framerate', String(FPS), '-i', '-',
         ...(hasMix ? ['-ss', String(a0), '-t', String(a1 - a0), '-i', mix] : ['-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=stereo']), '-map', '0:v', '-map', '1:a',
-        '-c:v', 'libx264', '-preset', flags.has('--draft') ? 'ultrafast' : 'veryfast', '-crf', flags.has('--draft') ? '28' : '18', '-pix_fmt', 'yuv420p',
-        '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
+        '-c:v', 'libx264', '-preset', flags.has('--draft') ? 'ultrafast' : 'veryfast', '-crf', flags.has('--draft') ? '28' : (process.env.CRF || (SCALE > 1 ? '16' : '18')), '-pix_fmt', 'yuv420p',
+        '-c:a', 'aac', '-b:a', (process.env.ABR || '192k'), '-shortest', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
       const t0 = Date.now();
       for (let i = 0; i < n; i++) {
-        const b = jpg(await P.ev(FRAME(a0 + i / FPS, flags.has('--draft') ? 0.8 : 0.93)));
+        const b = jpg(await P.ev(FRAME(a0 + i / FPS, flags.has('--draft') ? 0.8 : +(process.env.JPEG_Q || (SCALE > 1 ? 0.95 : 0.93)))));
         if (!ff.stdin.write(b)) await new Promise((r) => ff.stdin.once('drain', r));
         if (i % 150 === 0) process.stdout.write(`\r${i}/${n} frames`);
       }

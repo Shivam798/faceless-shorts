@@ -32,3 +32,5 @@ and `bash scripts/selftest.sh` (prints "SELFTEST PASSED"). Start a new session a
 **Licenses:** the code, stories, drawings and sound are original and free to use in your videos. Inter font: SIL Open Font
 License 1.1. Installed on first use: Kokoro-82M (Apache-2.0) via kokoro-onnx (MIT), faster-whisper + Whisper small.en (MIT),
 numpy, scipy.
+
+**4K:** renders are 2160x3840 by default (`SCALE=1` for 1080x1920; no-GPU machines default to 1080).

@@ -113,6 +113,12 @@ engine/kit map, components, shot anatomy, cue types, QA pitfalls) and a complete
 shared scripts (voice, words, estimate, new_video, selftest) work unchanged. Add a row to the table above and run
 `selftest.sh` until every style passes.
 
+## 4K output (default)
+`capture.mjs` renders **2160x3840** by default: the canvas is drawn at 2x (`tools/scale.js`), and the 3D styles render
+WebGL at `res=2`. Encode is CRF 16 at 4K. Use `SCALE=1` for a 1080x1920 file (smaller to share, faster), and with
+`SOFTWARE_GL=1` (no graphics card) the default drops to 1080 by itself. Every style draws in 1080x1920 coordinates, so new
+styles get 4K for free: just keep `<script src="tools/scale.js"></script>` after the `#cv` canvas in `index.html`.
+
 ## 3D styles (Deep Dive, Night File, Tall Tale)
 They render real 3D with three.js in headless Chrome. With a graphics card it's fast and full quality. Without one
 (a laptop without GPU acceleration, a cloud sandbox) render with `SOFTWARE_GL=1 QS='&res=0.6&aa=0&shadow=1024'
