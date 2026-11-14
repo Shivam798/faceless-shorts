@@ -33,4 +33,4 @@ and `bash scripts/selftest.sh` (prints "SELFTEST PASSED"). Start a new session a
 License 1.1. Installed on first use: Kokoro-82M (Apache-2.0) via kokoro-onnx (MIT), faster-whisper + Whisper small.en (MIT),
 numpy, scipy.
 
-**4K:** renders are 2160x3840 by default (`SCALE=1` for 1080x1920; no-GPU machines default to 1080).
+**Resolution:** renders one 1080x1920 file by default. 4K (2160x3840) only on request: `SCALE=2 node tools/capture.mjs video ...`.
