@@ -6,8 +6,8 @@
 //   node tools/capture.mjs video renders/out.mp4 [start end] [--draft]   the film (30 fps) with data/mix.wav if it exists
 //   node tools/capture.mjs preview                       serve the project and print a URL to watch it in a browser
 // CHROME=/path/to/chrome overrides the browser.
-// 4K by default: 2160x3840 (SCALE=2; 3D styles also render WebGL at res=2). SCALE=1 → 1080x1920. Without a GPU
-// (SOFTWARE_GL=1) the default is 1080. CRF, JPEG_Q, ABR override the encode quality.
+// 1080x1920 by default (SCALE=1): one output. 4K (2160x3840) only when asked: SCALE=2 (3D styles then also render
+// WebGL at res=2; needs a GPU). CRF, JPEG_Q, ABR override the encode quality.
 import { spawn, spawnSync } from 'node:child_process';
 import http from 'node:http';
 import fs from 'node:fs';
@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const FPS = +(process.env.FPS || 30);
-const SCALE = +(process.env.SCALE || (process.env.SOFTWARE_GL ? 1 : 2));
+const SCALE = +(process.env.SCALE || 1);
 const QS = `&scale=${SCALE}` + (/(^|&)res=/.test(process.env.QS || '') ? '' : `&res=${SCALE}`) + (process.env.QS || '');
 const CHROME = [process.env.CHROME, '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/Applications/Chromium.app/Contents/MacOS/Chromium',
   '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge', '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable', '/usr/bin/chromium',

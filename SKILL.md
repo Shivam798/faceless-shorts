@@ -36,7 +36,7 @@ contact sheet and clip it names and look at them.
 Ask only what's unknown, all at once: topic (or "you pick 3 ideas"), a link to a short whose format they like (optional),
 length (default ~30 s), voice (`SKILL/scripts/py SKILL/scripts/voice.py --list`; default `am_michael`), voiceover mode:
 **AI voice** (default) · **their own recording** (they record after seeing the script; `words.py --audio`) ·
-**captions-only** (no voice yet; `estimate.py`), music (built-in bed · none · their own royalty-free file), end line / handle.
+**captions-only** (no voice yet; `estimate.py`), music (built-in bed · none · their own royalty-free file), end line / handle. Output is 1080x1920 (4K only if they ask).
 "Just go" = the defaults.
 
 ## 2. The plan (ONE screen, then wait)
@@ -113,11 +113,14 @@ engine/kit map, components, shot anatomy, cue types, QA pitfalls) and a complete
 shared scripts (voice, words, estimate, new_video, selftest) work unchanged. Add a row to the table above and run
 `selftest.sh` until every style passes.
 
-## 4K output (default)
-`capture.mjs` renders **2160x3840** by default: the canvas is drawn at 2x (`tools/scale.js`), and the 3D styles render
-WebGL at `res=2`. Encode is CRF 16 at 4K. Use `SCALE=1` for a 1080x1920 file (smaller to share, faster), and with
-`SOFTWARE_GL=1` (no graphics card) the default drops to 1080 by itself. Every style draws in 1080x1920 coordinates, so new
-styles get 4K for free: just keep `<script src="tools/scale.js"></script>` after the `#cv` canvas in `index.html`.
+## Output resolution: 1080 by default, 4K only when asked
+`capture.mjs` renders ONE file at **1080x1920** by default (`SCALE=1`, CRF 18). That's the right file for both YouTube
+Shorts and Instagram Reels, renders about 3x faster than 4K and is ~10x smaller. Don't make a 4K file or a second copy
+unless the user asks.
+**4K only on request** ("make it 4K", "4K version"): put `SCALE=2` in front of `node tools/capture.mjs video ...` →
+2160x3840, canvas drawn at 2x (`tools/scale.js`), 3D styles render WebGL at `res=2`, CRF 16. Needs a graphics card
+(not with `SOFTWARE_GL=1`). Every style draws in 1080x1920 coordinates, so any style can render 4K: just keep
+`<script src="tools/scale.js"></script>` after the `#cv` canvas in `index.html`.
 
 ## 3D styles (Deep Dive, Night File, Tall Tale)
 They render real 3D with three.js in headless Chrome. With a graphics card it's fast and full quality. Without one

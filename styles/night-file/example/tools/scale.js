@@ -1,4 +1,4 @@
-// 4K: ?scale=2 makes the main canvas 2160x3840 while every drawing still uses 1080x1920 coordinates.
+// 4K (only when asked): ?scale=2 makes the main canvas 2160x3840 while every drawing still uses 1080x1920 coordinates.
 // Loaded by index.html before src/main.js. Patches only the main #cv context: setTransform/resetTransform keep the
 // base scale, and blur(Npx) filters are scaled too. tools/capture.mjs passes scale (and res for the 3D engine).
 (() => {
